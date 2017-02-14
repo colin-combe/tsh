@@ -2,50 +2,39 @@ package tsh;
 
 import java.util.*;
 import java.io.*;
-import javax.mail.*;
-import com.sun.mail.imap.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.mail.search.SubjectTerm;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class TshMonitor {
 
     //  >> Here are your controls, John <<
     private static final String boxIP = "127.0.0.1";//you'll need to change this
     private static final int boxPort = 5010;
+    
+    //For levels it goes:
+    private static final Float high = 0.2f;
+    private static final Float midHigh = 0.2f;
+    private static final Float midLow = 0.2f;
+    private static final Float low = 0.2f;
 
-    private static final Float highThreshhold = 0.1f;//you'll want to change this
-    private static final Float lowThreshhold = 0.04f;//you'll want to change this
+    //For level change bandings (normstable, etc) it now goes
+    private static final Float highChange = 0.5f;
+    private static final Float lowChange = 0.2f;
 
     private static final Float noChangeTolerance = 0.01f;
 
-    //dont play with this tho
-//    private static SortedMap<Date, Float[]> readings = new TreeMap<Date, Float[]>();
-//    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
     public static void main(String argv[]) {
-        while (true) {//
+        while (true) {
             try {
-//            System.out.println("Has rained this hour? " + hasRainedThisHour());
-//            System.out.println("River level:" + getLevelData());
                 makeWords();
             } catch (Exception ex) {
                 ex.printStackTrace();
-            } finally {
-//                try {
-////                    folder.close(false);
-////                    store.close();
-//                } catch (Exception ex) {
-//                    ex.printStackTrace();
-//                }
-            }
+            } 
         }
     }
 
@@ -66,20 +55,21 @@ public class TshMonitor {
         }
     }
 
-    static Pattern garlsCraig = Pattern.compile("\\s.*Garls Craig \\- (.*)mm.*");
-
+    static Pattern garlsCraig = Pattern.compile(".*?Value\":\"(.*?)\"}");
+    
     public static String getRainData() {
-        String inputString = readURL("http://beta.sepa.org.uk/rainfall/#301168");
-        //String inputString = ("tionHeader'>Garls CraGarls Craig - 2.4mm to 12/02/2017 06:00 GM");
-        // System.out.println();
+        String inputString = readURL("http://beta.sepa.org.uk/rainfall/api/Hourly/301168");
         Matcher m = garlsCraig.matcher(inputString);
-        if (m.find()) {
-            return m.group(1);
+        String lastValue = null;
+        
+        while (m.find()) {
+            lastValue = m.group(1);
+//            System.out.println(m.group(1));
         }
-        return null;
+        return lastValue;
     }
 
-    public static String getLevelData() {
+    public static String[] getLevelData() {
         String dataString = readURL("http://apps.sepa.org.uk/database/riverlevels/504722-SG.csv");
 
         String lines[] = dataString.split("\\r?\\n");
@@ -88,26 +78,39 @@ public class TshMonitor {
         float pv = Float.parseFloat(lines[linesLen - 2].split(",")[1]);
         float v = Float.parseFloat(lines[linesLen - 1].split(",")[1]);
 
-        String word = "";
+        String changeWord;
         //System.out.println(dataString);
-        if (v > TshMonitor.highThreshhold) {
-            word += "HIGH";
-        } else if (v < TshMonitor.lowThreshhold) {
-            word += "LOW";
+        if (v > TshMonitor.highChange) {
+            changeWord = "HIGH";
+        } else if (v < TshMonitor.lowChange) {
+            changeWord = "LOW";
         } else {
-            word += "NORM";
+            changeWord = "NORM";
         }
         float diff = Math.abs(v - pv);
-        if (v > pv && diff > TshMonitor.noChangeTolerance && v < TshMonitor.highThreshhold) {
-            word += "RISE";
-        } else if (v < pv && diff > TshMonitor.noChangeTolerance && v > TshMonitor.lowThreshhold) {
-            word += "FALL";
+        if (v > pv && diff > TshMonitor.noChangeTolerance && v < TshMonitor.highChange) {
+            changeWord += "RISE";
+        } else if (v < pv && diff > TshMonitor.noChangeTolerance && v > TshMonitor.lowChange) {
+            changeWord += "FALL";
         } else {
-            word += "STABLE";
+            changeWord += "STABLE";
         }
-        System.out.println(word + " [" + pv + " > " + v + "]");
+        
+        String levelWord;
+        //System.out.println(dataString);
+        if (v > TshMonitor.high) {
+            levelWord = "HIGH";
+        } else if (v > TshMonitor.midHigh) {
+            levelWord = "MIDHIGH";
+        } else if (v > TshMonitor.midLow) {
+            levelWord = "MIDLOW";
+        } else {
+            levelWord = "LOW";
+        }
+        
+        System.out.println(levelWord + " " + changeWord + " [" + pv + " > " + v + "]");
 
-        return word;
+        return new String[]{levelWord, changeWord};
     }
 
     public static String readURL(String url) {
@@ -133,8 +136,8 @@ public class TshMonitor {
         System.out.println("*Cinema programme " + time +"* - should update in 1/4 hour");
         boolean rainy = hasRainedThisHour();
         System.out.println("Has rained this hour? " + rainy);
-        String level = getLevelData();
-        System.out.println("River level:" + level);
+        String[] levels = getLevelData();
+        System.out.println("River level:" + levels[0] + " " +  levels[1]);
 
         String rainWord = "FAIR";
         if (rainy) {
@@ -150,23 +153,28 @@ public class TshMonitor {
         int millisInHour = 1000 * 60 * 60;
         //take few seconds off - think this will help avoid gaps
         millisInHour -= 3 * 1000;
-        int udpFreq = 1000; //every 1 secs
-
-//        int wordCount = words.length;
-//        for (int w = 0; w < wordCount; w++) {
-//            String word = words[w];
-        int udpSendCount = (millisInHour / udpFreq) / 4;// wordCount;
-        System.out.println("sending " + rainWord + " " + level + " " + udpSendCount + " times");
+        int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
+        int udpSendCount = (millisInHour / udpFreq) / 4;// quarterHourly updates;
+        System.out.println("sending " + rainWord + " " + levels[0] + " " +  levels[1] + " " + udpSendCount + " times");
+        
+        int wordCount = 3;
+        
         for (int u = 0; u < udpSendCount; u++) {
             new SendUDPWord(boxIP, boxPort, rainWord);
             try {
-                Thread.sleep(udpFreq / 2);
+                Thread.sleep(udpFreq / wordCount);
             } catch (InterruptedException ex) {
                 Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            new SendUDPWord(boxIP, boxPort, level);
+            new SendUDPWord(boxIP, boxPort, levels[0]);
             try {
-                Thread.sleep(udpFreq / 2);
+                Thread.sleep(udpFreq / wordCount);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            new SendUDPWord(boxIP, boxPort, levels[1]);
+            try {
+                Thread.sleep(udpFreq / wordCount);
             } catch (InterruptedException ex) {
                 Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
