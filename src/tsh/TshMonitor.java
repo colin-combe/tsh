@@ -155,23 +155,23 @@ public class TshMonitor {
         millisInHour -= 3 * 1000;
         int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
         int udpSendCount = (millisInHour / udpFreq) / 4;// quarterHourly updates;
-        System.out.println("sending " + rainWord + " " + levels[0] + " " +  levels[1] + " " + udpSendCount + " times");
+        System.out.println("sending " + rainWord + levels[0] + " " +  levels[1] + " " + udpSendCount + " times");
         
-        int wordCount = 3;
+        int wordCount = 2;
         
         for (int u = 0; u < udpSendCount; u++) {
-            new SendUDPWord(boxIP, boxPort, rainWord);
+            new SendUDPWord(boxIP, boxPort, rainWord + levels[0]);
             try {
                 Thread.sleep(udpFreq / wordCount);
             } catch (InterruptedException ex) {
                 Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            new SendUDPWord(boxIP, boxPort, levels[0]);
-            try {
-                Thread.sleep(udpFreq / wordCount);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
-            }
+//            new SendUDPWord(boxIP, boxPort, levels[0]);
+//            try {
+//                Thread.sleep(udpFreq / wordCount);
+//            } catch (InterruptedException ex) {
+//                Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
+//            }
             new SendUDPWord(boxIP, boxPort, levels[1]);
             try {
                 Thread.sleep(udpFreq / wordCount);
