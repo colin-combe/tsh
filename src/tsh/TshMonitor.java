@@ -3,11 +3,16 @@ package tsh;
 import java.util.*;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.IOUtils;
 
 public class TshMonitor {
@@ -26,9 +31,31 @@ public class TshMonitor {
     private static final Float highChange = 0.5f;
     private static final Float lowChange = 0.2f;
 
+    //traffic cut offs - don't really fiddle with these or you traffic flow rate averages wont be what you think
+    private static final int highTruck = 500;
+    private static final int highCar = 1500;
+
     private static final Float noChangeTolerance = 0.01f;
+    
+    private static final Map<String, CSVRecord> trafficMap = new HashMap<String, CSVRecord>();
 
     public static void main(String argv[]) {
+        
+        //load traffic data
+        CSVParser parser = null;
+        try {
+            String csvData = new String(Files.readAllBytes(Paths.get("1603_Cls.csv")));
+            parser = CSVParser.parse(csvData, CSVFormat.RFC4180.withHeader());
+        } catch (IOException ex) {
+            Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        for (CSVRecord csvRecord : parser) {
+            String key = csvRecord.get("day") + "-" + csvRecord.get("hour");
+//            System.out.println(key);
+            trafficMap.put(key, csvRecord);
+        }
+        
         while (true) {
             try {
                 makeWords();
@@ -130,6 +157,28 @@ public class TshMonitor {
         }
         return dataString;
     }
+    
+    public static String getTrafficWord(){
+        Calendar cal = Calendar.getInstance();
+        String key = ((cal.get(Calendar.DAY_OF_WEEK) + 5) % 7) + "-" + cal.get(Calendar.HOUR_OF_DAY);
+        CSVRecord record = TshMonitor.trafficMap.get(key);
+        int OV = Integer.parseInt(record.get("TotalOV"));
+        int HV = Integer.parseInt(record.get("TotalHV"));
+        
+        String word;
+        if (OV > TshMonitor.highCar) {
+            word = "HICAR";
+        } else {
+            word = "LOCAR";    
+        }
+        word += "_";
+        if (HV > TshMonitor.highTruck) {
+            word += "HITRUCK";
+        } else {
+            word += "LOTRUCK";    
+        }
+        return word;
+    }
 
     public static void makeWords() {
         String time = now();
@@ -138,7 +187,8 @@ public class TshMonitor {
         System.out.println("Has rained this hour? " + rainy);
         String[] levels = getLevelData();
         System.out.println("River level:" + levels[0] + " " +  levels[1]);
-
+        String trafficWord = getTrafficWord();
+                
         String rainWord = "FAIR";
         if (rainy) {
             rainWord = ("RAIN");
@@ -155,9 +205,10 @@ public class TshMonitor {
         millisInHour -= 3 * 1000;
         int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
         int udpSendCount = (millisInHour / udpFreq) / 4;// quarterHourly updates;
-        System.out.println("sending " + rainWord + levels[0] + " " +  levels[1] + " " + udpSendCount + " times");
+        System.out.println("sending " + rainWord + levels[0] + " " +  levels[1] 
+                + " " +  trafficWord + " " + udpSendCount + " times");
         
-        int wordCount = 2;
+        int wordCount = 3;
         
         for (int u = 0; u < udpSendCount; u++) {
             new SendUDPWord(boxIP, boxPort, rainWord + levels[0]);
@@ -166,13 +217,15 @@ public class TshMonitor {
             } catch (InterruptedException ex) {
                 Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
-//            new SendUDPWord(boxIP, boxPort, levels[0]);
-//            try {
-//                Thread.sleep(udpFreq / wordCount);
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
-//            }
+
             new SendUDPWord(boxIP, boxPort, levels[1]);
+            try {
+                Thread.sleep(udpFreq / wordCount);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            new SendUDPWord(boxIP, boxPort, trafficWord);
             try {
                 Thread.sleep(udpFreq / wordCount);
             } catch (InterruptedException ex) {
