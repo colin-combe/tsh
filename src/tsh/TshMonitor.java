@@ -21,6 +21,11 @@ public class TshMonitor {
     private static final String boxIP = "127.0.0.1";//you'll need to change this
     private static final int boxPort = 5010;
     
+    private static final String defaultTrafficClip = "TRAFFIC7";
+    
+    // traffic clips
+    private static String[] trafficClips = new String[16];
+    
     //For levels it goes:
     private static final Float high = 0.2f;
     private static final Float midHigh = 0.2f;
@@ -41,20 +46,38 @@ public class TshMonitor {
 
     public static void main(String argv[]) {
         
-        //load traffic data
-        CSVParser parser = null;
-        try {
-            String csvData = new String(Files.readAllBytes(Paths.get("1603_Cls.csv")));
-            parser = CSVParser.parse(csvData, CSVFormat.RFC4180.withHeader());
-        } catch (IOException ex) {
-            Logger.getLogger(TshMonitor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        for (CSVRecord csvRecord : parser) {
-            String key = csvRecord.get("day") + "-" + csvRecord.get("hour");
-//            System.out.println(key);
-            trafficMap.put(key, csvRecord);
-        }
+        //    FRI,10AM,1
+        trafficClips[0] = "TRAFFIC1";       
+        //    FRI,11AM,2
+        trafficClips[1] = "TRAFFIC2";       
+        //    FRI,12PM,2
+        trafficClips[2] = "TRAFFIC2";     
+        //    FRI,13PM,3
+        trafficClips[3] = "TRAFFIC3";   
+        //    FRI,14PM,3
+        trafficClips[4] = "TRAFFIC3";       
+        //    FRI,15PM,3
+        trafficClips[5] = "TRAFFIC3";  
+        //    FRI,16PM,4
+        trafficClips[6] = "TRAFFIC4";       
+        //    FRI,17PM,4
+        trafficClips[7] = "TRAFFIC4";       
+        //    SAT,10AM,5
+        trafficClips[8] = "TRAFFIC5";
+        //    SAT,11AM,5
+        trafficClips[9] = "TRAFFIC5";       
+        //    SAT,12PM,5
+        trafficClips[10] = "TRAFFIC5";        
+        //    SAT,13PM,5
+        trafficClips[11] = "TRAFFIC5";
+        //    SAT,14PM,6
+        trafficClips[12] = "TRAFFIC6";
+        //    SAT,15PM,6
+        trafficClips[13] = "TRAFFIC6";
+        //    SAT,16PM,6
+        trafficClips[14] = "TRAFFIC6";
+        //    SAT,17PM,7
+        trafficClips[15] = "TRAFFIC7";      
         
         while (true) {
             try {
@@ -160,24 +183,16 @@ public class TshMonitor {
     
     public static String getTrafficWord(){
         Calendar cal = Calendar.getInstance();
-        String key = ((cal.get(Calendar.DAY_OF_WEEK) + 5) % 7) + "-" + cal.get(Calendar.HOUR_OF_DAY);
-        CSVRecord record = TshMonitor.trafficMap.get(key);
-        int OV = Integer.parseInt(record.get("TotalOV"));
-        int HV = Integer.parseInt(record.get("TotalHV"));
-        
-        String word;
-        if (OV > TshMonitor.highCar) {
-            word = "HICAR";
-        } else {
-            word = "LOCAR";    
+        //the default setting - if not fri or sat
+        int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+        if (dayOfWeek < 6) {
+            return defaultTrafficClip;
         }
-        word += "_";
-        if (HV > TshMonitor.highTruck) {
-            word += "HITRUCK";
-        } else {
-            word += "LOTRUCK";    
-        }
-        return word;
+        else {
+            int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+            int clipIndex = hourOfDay - 10 + ((dayOfWeek - 6) * 8);
+            return trafficClips[clipIndex];
+        }        
     }
 
     public static void makeWords() {
