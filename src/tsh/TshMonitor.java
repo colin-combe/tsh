@@ -27,10 +27,9 @@ public class TshMonitor {
     private static String[] trafficClips = new String[16];
     
     //For levels it goes:
-    private static final Float high = 0.2f;
-    private static final Float midHigh = 0.2f;
+    private static final Float high = 0.6f;
+    private static final Float midHigh = 0.4f;
     private static final Float midLow = 0.2f;
-    private static final Float low = 0.2f;
 
     //For level change bandings (normstable, etc) it now goes
     private static final Float highChange = 0.5f;
