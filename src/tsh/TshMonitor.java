@@ -189,8 +189,12 @@ public class TshMonitor {
         }
         else {
             int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
-            int clipIndex = hourOfDay - 10 + ((dayOfWeek - 6) * 8);
-            return trafficClips[clipIndex];
+            if (hourOfDay > 10 && hourOfDay < 18) {
+                int clipIndex = hourOfDay - 10 + ((dayOfWeek - 6) * 8);
+                return trafficClips[clipIndex];
+            } else {
+               return defaultTrafficClip; 
+            }
         }        
     }
 
