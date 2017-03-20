@@ -47,64 +47,64 @@ public class TshMonitor {
         
         //FRIDAY
         //   9AM
-        trafficClips[0] = "TRAFFIC1";       
+        trafficClips[0] = "TRAFFIC9";       
        //    10AM
         trafficClips[1] = "TRAFFIC1";       
         //   11AM
-        trafficClips[2] = "TRAFFIC2";       
+        trafficClips[2] = "TRAFFIC10";       
         //   12PM
-        trafficClips[3] = "TRAFFIC2";     
+        trafficClips[3] = "TRAFFIC3";     
         //   13PM
         trafficClips[4] = "TRAFFIC3";   
         //    14PM
-        trafficClips[5] = "TRAFFIC3";       
+        trafficClips[5] = "TRAFFIC11";       
         //    15PM
-        trafficClips[6] = "TRAFFIC3";  
+        trafficClips[6] = "TRAFFIC4";  
         //    16PM
         trafficClips[7] = "TRAFFIC4";       
         //    17PM
-        trafficClips[8] = "TRAFFIC4";
+        trafficClips[8] = "TRAFFIC12";
                 
         //SATURDAY
         //   9AM
-        trafficClips[9] = "TRAFFIC1";       
+        trafficClips[9] = "TRAFFIC6";       
        //    10AM
-        trafficClips[10] = "TRAFFIC1";       
+        trafficClips[10] = "TRAFFIC5";       
         //   11AM
-        trafficClips[11] = "TRAFFIC2";       
+        trafficClips[11] = "TRAFFIC14";       
         //   12PM
-        trafficClips[12] = "TRAFFIC2";     
+        trafficClips[12] = "TRAFFIC5";     
         //   13PM
-        trafficClips[13] = "TRAFFIC3";   
+        trafficClips[13] = "TRAFFIC5";   
         //    14PM
-        trafficClips[14] = "TRAFFIC3";       
+        trafficClips[14] = "TRAFFIC5";       
         //    15PM
-        trafficClips[15] = "TRAFFIC3";  
+        trafficClips[15] = "TRAFFIC6";  
         //    16PM
-        trafficClips[16] = "TRAFFIC4";       
+        trafficClips[16] = "TRAFFIC6";       
         //    17PM
-        trafficClips[17] = "TRAFFIC4";
+        trafficClips[17] = "TRAFFIC6";
         
                          
         //SUNDAY
         //   9AM
-        trafficClips[18] = "TRAFFIC1";       
+        trafficClips[18] = "TRAFFIC7";       
        //    10AM
-        trafficClips[19] = "TRAFFIC1";       
+        trafficClips[19] = "TRAFFIC5";       
         //   11AM
-        trafficClips[20] = "TRAFFIC2";       
+        trafficClips[20] = "TRAFFIC5";       
         //   12PM
-        trafficClips[21] = "TRAFFIC2";     
+        trafficClips[21] = "TRAFFIC14";     
         //   13PM
-        trafficClips[22] = "TRAFFIC3";   
+        trafficClips[22] = "TRAFFIC14";   
         //    14PM
-        trafficClips[23] = "TRAFFIC3";       
+        trafficClips[23] = "TRAFFIC15";       
         //    15PM
-        trafficClips[24] = "TRAFFIC3";  
+        trafficClips[24] = "TRAFFIC15";  
         //    16PM
-        trafficClips[25] = "TRAFFIC4";       
+        trafficClips[25] = "TRAFFIC15";       
         //    17PM
-        trafficClips[26] = "TRAFFIC4";
+        trafficClips[26] = "TRAFFIC14";
         
          
         while (true) {
