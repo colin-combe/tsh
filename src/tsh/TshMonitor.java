@@ -24,7 +24,7 @@ public class TshMonitor {
     private static final String defaultTrafficClip = "TRAFFIC7";
     
     // traffic clips
-    private static String[] trafficClips = new String[16];
+    private static String[] trafficClips = new String[27];
     
     //For levels it goes:
     private static final Float high = 0.6f;
@@ -45,39 +45,68 @@ public class TshMonitor {
 
     public static void main(String argv[]) {
         
-        //    FRI,10AM,1
+        //FRIDAY
+        //   9AM
         trafficClips[0] = "TRAFFIC1";       
-        //    FRI,11AM,2
-        trafficClips[1] = "TRAFFIC2";       
-        //    FRI,12PM,2
-        trafficClips[2] = "TRAFFIC2";     
-        //    FRI,13PM,3
-        trafficClips[3] = "TRAFFIC3";   
-        //    FRI,14PM,3
-        trafficClips[4] = "TRAFFIC3";       
-        //    FRI,15PM,3
-        trafficClips[5] = "TRAFFIC3";  
-        //    FRI,16PM,4
-        trafficClips[6] = "TRAFFIC4";       
-        //    FRI,17PM,4
+       //    10AM
+        trafficClips[1] = "TRAFFIC1";       
+        //   11AM
+        trafficClips[2] = "TRAFFIC2";       
+        //   12PM
+        trafficClips[3] = "TRAFFIC2";     
+        //   13PM
+        trafficClips[4] = "TRAFFIC3";   
+        //    14PM
+        trafficClips[5] = "TRAFFIC3";       
+        //    15PM
+        trafficClips[6] = "TRAFFIC3";  
+        //    16PM
         trafficClips[7] = "TRAFFIC4";       
-        //    SAT,10AM,5
-        trafficClips[8] = "TRAFFIC5";
-        //    SAT,11AM,5
-        trafficClips[9] = "TRAFFIC5";       
-        //    SAT,12PM,5
-        trafficClips[10] = "TRAFFIC5";        
-        //    SAT,13PM,5
-        trafficClips[11] = "TRAFFIC5";
-        //    SAT,14PM,6
-        trafficClips[12] = "TRAFFIC6";
-        //    SAT,15PM,6
-        trafficClips[13] = "TRAFFIC6";
-        //    SAT,16PM,6
-        trafficClips[14] = "TRAFFIC6";
-        //    SAT,17PM,7
-        trafficClips[15] = "TRAFFIC7";      
+        //    17PM
+        trafficClips[8] = "TRAFFIC4";
+                
+        //SATURDAY
+        //   9AM
+        trafficClips[9] = "TRAFFIC1";       
+       //    10AM
+        trafficClips[10] = "TRAFFIC1";       
+        //   11AM
+        trafficClips[11] = "TRAFFIC2";       
+        //   12PM
+        trafficClips[12] = "TRAFFIC2";     
+        //   13PM
+        trafficClips[13] = "TRAFFIC3";   
+        //    14PM
+        trafficClips[14] = "TRAFFIC3";       
+        //    15PM
+        trafficClips[15] = "TRAFFIC3";  
+        //    16PM
+        trafficClips[16] = "TRAFFIC4";       
+        //    17PM
+        trafficClips[17] = "TRAFFIC4";
         
+                         
+        //SUNDAY
+        //   9AM
+        trafficClips[18] = "TRAFFIC1";       
+       //    10AM
+        trafficClips[19] = "TRAFFIC1";       
+        //   11AM
+        trafficClips[20] = "TRAFFIC2";       
+        //   12PM
+        trafficClips[21] = "TRAFFIC2";     
+        //   13PM
+        trafficClips[22] = "TRAFFIC3";   
+        //    14PM
+        trafficClips[23] = "TRAFFIC3";       
+        //    15PM
+        trafficClips[24] = "TRAFFIC3";  
+        //    16PM
+        trafficClips[25] = "TRAFFIC4";       
+        //    17PM
+        trafficClips[26] = "TRAFFIC4";
+        
+         
         while (true) {
             try {
                 makeWords();
@@ -184,13 +213,16 @@ public class TshMonitor {
         Calendar cal = Calendar.getInstance();
         //the default setting - if not fri or sat
         int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-        if (dayOfWeek < 6) {
+        if (dayOfWeek < 6 & dayOfWeek != 1) {
             return defaultTrafficClip;
         }
         else {
+            if (dayOfWeek == 1) {
+                dayOfWeek = 8;
+            }
             int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
-            if (hourOfDay > 9 && hourOfDay < 18) {
-                int clipIndex = hourOfDay - 10 + ((dayOfWeek - 6) * 8);
+            if (hourOfDay > 8 && hourOfDay < 18) {
+                int clipIndex = hourOfDay - 9 + ((dayOfWeek - 6) * 9);
                 return trafficClips[clipIndex];
             } else {
                return defaultTrafficClip; 
