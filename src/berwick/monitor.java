@@ -1,6 +1,6 @@
 package berwick;
 
-import tsh.SendUDPWord;
+import udp.SendUDPWord;
 import java.util.*;
 import java.io.*;
 import javax.mail.*;
