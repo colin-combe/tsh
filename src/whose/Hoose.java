@@ -1,26 +1,38 @@
 package whose;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+//import tsh.TshMonitor;
+import udp.SendUDPWord;
 
 public class Hoose {
 
+    //  >> Here are your controls, John <<
+    private static final String boxIP = "127.0.0.1";//you'll need to change this
+    private static final int boxPort = 5010;//and this
+    private static final String udpRecieveIP = "127.0.0.1";//"192.168.0.10";//and this
+    private static final int udpReceivePort = 7474;
+    
+
     private static List<String> credentials;
-//    private Connection connect = null;
-//    private Statement statement = null;
-//    private PreparedStatement preparedStatement = null;
-//    private ResultSet resultSet = null;
+    private static int calmCount = 0;
+    private static int calmPosition = 0;
+    private static Random randomGenerator;
 
     public static void main(String[] args) {
         try {
@@ -30,14 +42,105 @@ public class Hoose {
         }
         //System.out.println(credentials.get(1));
 
+//        getNextFilm();
 //        getPlaylist();
-        getAllFilms();
+//        getAllFilms();
+//        setPlayed(107);
+        while (true) {
+            loop();
+        }
     }
 
-    public static void getPlaylist() {
+    static void loop() {
+
+        PlaylistItem nextFilm = getNextFilm();
+        String udpWord = nextFilm.name;
+
+        //update db - TODO: work in udp confirmation / now playing
+        if (nextFilm.id > -1) {
+            setPlayed(nextFilm.id);
+        }
+        
+        //send udp word for a while
+        int secsToSend = 25;
+        int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
+
+        int udpSendCount = secsToSend * 1000 / udpFreq;// quarterHourly updates;
+
+        System.out.println("sending " + udpWord + " " + udpSendCount + " times");
+        for (int u = 0; u < udpSendCount; u++) {
+            new SendUDPWord(boxIP, boxPort, udpWord);
+            try {
+                Thread.sleep(udpFreq);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //listen for interstital starting
+        int secsToListen = 13;
+        long startTime = System.currentTimeMillis();
+        long stopTime = startTime + (secsToListen * 1000);
+        try {
+            System.out.printf("Listening on udp:%s:%d%n",
+                    udpRecieveIP, udpReceivePort);
+            InetSocketAddress address = new InetSocketAddress(udpRecieveIP, udpReceivePort);
+            DatagramSocket serverSocket = new DatagramSocket(address);
+
+            byte[] receiveData = new byte[16];
+
+            DatagramPacket receivePacket = new DatagramPacket(receiveData,
+                    receiveData.length);
+
+            while (true) {
+                serverSocket.receive(receivePacket);
+                String sentence = new String(receivePacket.getData(), 0,
+                        receivePacket.getLength());
+                System.out.println("RECEIVED: " + sentence);
+                if (sentence.startsWith("pre_tInter")){
+                    System.out.println("Yay! Confrimation recieved: " + sentence);
+                    break;
+                }
+                if (System.currentTimeMillis() > stopTime){
+                    System.out.println("Bored waiting; proceeding");
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+    }
+
+    static PlaylistItem getNextFilm() {
+        PlaylistItem nextFilm = null;
+        List<PlaylistItem> playlist = getPlaylist();
+        if (playlist.size() > 0) {
+            nextFilm = playlist.get(0);
+            calmCount = 0;
+        } else {
+            if (calmCount < 5) {
+                calmCount++;
+                calmPosition++;
+                if (calmPosition > Intermission.wordList.length - 1) {
+                    calmPosition = 0;
+                }
+                nextFilm = new PlaylistItem(-1, "Playlist empty", Intermission.wordList[calmPosition]);
+            } else {
+                calmCount = 0;
+                //get random film
+                List<PlaylistItem> allFilms = getAllFilms();
+                nextFilm = allFilms.get(randomGenerator.nextInt(allFilms.size()));
+            }
+        }
+        System.out.println("Next up: " + nextFilm.toString());
+        return nextFilm;
+    }
+
+    public static List<PlaylistItem> getPlaylist() {
         Connection connect = null;
         Statement statement = null;
         ResultSet resultSet = null;
+        List<PlaylistItem> playlist = new ArrayList<PlaylistItem>();
         try {
             // This will load the MySQL driver, each DB has its own driver
             Class.forName("com.mysql.jdbc.Driver");
@@ -51,49 +154,59 @@ public class Hoose {
             statement = connect.createStatement();
             // Result set get the result of the SQL query
             resultSet = statement
-                    .executeQuery("SELECT * FROM wp_posts WHERE post_status = \"draft\" AND post_type = \"post_playlists\";");
+                    .executeQuery("SELECT wp1.ID, wp2.post_name, wp2.post_title FROM wp_posts AS wp1 LEFT JOIN wp_posts wp2 ON wp1.post_title = wp2.ID WHERE wp1.post_status = \"draft\" AND wp1.post_type = \"post_playlists\" ORDER BY wp1.post_date ASC");
             // ResultSet is initially before the first data set
             while (resultSet.next()) {
-                // It is possible to get the columns via name
-                // also possible to get the columns via the column number
-                // which starts at 1
-                // e.g. resultSet.getSTring(2);
-                String user = resultSet.getString("post_name");
-//            String website = resultSet.getString("webpage");
-//            String summary = resultSet.getString("summary");
-//            Date date = resultSet.getDate("datum");
-//            String comment = resultSet.getString("comments");
-                System.out.println("post_name: " + user);
-//            System.out.println("Website: " + website);
-//            System.out.println("summary: " + summary);
-//            System.out.println("Date: " + date);
-//            System.out.println("Comment: " + comment);
+                playlist.add(new PlaylistItem(resultSet.getInt("ID"), resultSet.getString("post_title"), resultSet.getString("post_name")));
             }
-            // PreparedStatements can use variables and are more efficient
-//            preparedStatement = connect
-//                    .prepareStatement("insert into  feedback.comments values (default, ?, ?, ?, ? , ?, ?)");
-//            // "myuser, webpage, datum, summary, COMMENTS from feedback.comments");
-//            // Parameters start with 1
-//            preparedStatement.setString(1, "Test");
-//            preparedStatement.setString(2, "TestEmail");
-//            preparedStatement.setString(3, "TestWebpage");
-//            preparedStatement.setDate(4, new java.sql.Date(2009, 12, 11));
-//            preparedStatement.setString(5, "TestSummary");
-//            preparedStatement.setString(6, "TestComment");
-//            preparedStatement.executeUpdate();
+//            writeMetaData(resultSet);
+        } catch (Exception e) {
+            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, e);
+        } finally {
+            try {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
 
-//            preparedStatement = connect
-//                    .prepareStatement("SELECT myuser, webpage, datum, summary, COMMENTS from feedback.comments");
-//            resultSet = preparedStatement.executeQuery();
-//            writeResultSet(resultSet);
-            // Remove again the insert comment
-//            preparedStatement = connect
-//            .prepareStatement("delete from feedback.comments where myuser= ? ; ");
-//            preparedStatement.setString(1, "Test");
-//            preparedStatement.executeUpdate();
-//
-//            resultSet = statement
-//            .executeQuery("select * from feedback.comments");
+                if (connect != null) {
+                    connect.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+        System.out.println(playlist.size() + " items in playlist.");
+        return playlist;
+    }
+
+    public static List<PlaylistItem> getAllFilms() {
+        Connection connect = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        List<PlaylistItem> allFilms = new ArrayList<PlaylistItem>();
+        try {
+            // This will load the MySQL driver, each DB has its own driver
+            Class.forName("com.mysql.jdbc.Driver");
+            // Setup the connection with the DB
+            connect = DriverManager.getConnection("jdbc:mysql://"
+                    + credentials.get(0)
+                    + "/hoose_wp_2017?user=" + credentials.get(1)
+                    + "&password=" + credentials.get(2));
+
+            // Statements allow to issue SQL queries to the database
+            statement = connect.createStatement();
+            // Result set get the result of the SQL query
+            resultSet = statement
+                    .executeQuery("SELECT post_name, post_title FROM wp_posts WHERE post_status = \"publish\" AND post_type = \"post_videos\"");
+            // ResultSet is initially before the first data set
+
+            while (resultSet.next()) {
+                allFilms.add(new PlaylistItem(-1, resultSet.getString("post_title"), resultSet.getString("post_name")));
+            }
             writeMetaData(resultSet);
         } catch (Exception e) {
             Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, e);
@@ -114,11 +227,11 @@ public class Hoose {
             }
 
         }
-
+        System.out.println(allFilms.size() + " total published films.");
+        return allFilms;
     }
 
- 
-    public static void getAllFilms() {
+    public static void setPlayed(int id) {
         Connection connect = null;
         Statement statement = null;
         ResultSet resultSet = null;
@@ -134,26 +247,10 @@ public class Hoose {
             // Statements allow to issue SQL queries to the database
             statement = connect.createStatement();
             // Result set get the result of the SQL query
-            resultSet = statement
-                    .executeQuery("SELECT * FROM wp_posts WHERE post_status = \"publish\" AND post_type = \"post_videos\"");
-            // ResultSet is initially before the first data set
-            while (resultSet.next()) {
-                // It is possible to get the columns via name
-                // also possible to get the columns via the column number
-                // which starts at 1
-                // e.g. resultSet.getSTring(2);
-                String user = resultSet.getString("post_name");
-//            String website = resultSet.getString("webpage");
-//            String summary = resultSet.getString("summary");
-//            Date date = resultSet.getDate("datum");
-//            String comment = resultSet.getString("comments");
-                System.out.println("post_name: " + user);
-//            System.out.println("Website: " + website);
-//            System.out.println("summary: " + summary);
-//            System.out.println("Date: " + date);
-//            System.out.println("Comment: " + comment);
-            }
-            writeMetaData(resultSet);
+            int result = statement.executeUpdate("UPDATE wp_posts SET post_status = \"publish\" WHERE ID=" + id + ";");
+
+            System.out.println(": " + result);
+
         } catch (Exception e) {
             Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, e);
         } finally {
@@ -187,44 +284,5 @@ public class Hoose {
             System.out.println("Column " + i + " " + resultSet.getMetaData().getColumnName(i));
         }
     }
-/*
-    private static void writeResultSet(ResultSet resultSet) throws SQLException {
-        // ResultSet is initially before the first data set
-        while (resultSet.next()) {
-            // It is possible to get the columns via name
-            // also possible to get the columns via the column number
-            // which starts at 1
-            // e.g. resultSet.getSTring(2);
-            String user = resultSet.getString("post_name");
-//            String website = resultSet.getString("webpage");
-//            String summary = resultSet.getString("summary");
-//            Date date = resultSet.getDate("datum");
-//            String comment = resultSet.getString("comments");
-            System.out.println("post_name: " + user);
-//            System.out.println("Website: " + website);
-//            System.out.println("summary: " + summary);
-//            System.out.println("Date: " + date);
-//            System.out.println("Comment: " + comment);
-        }
-    }
 
-    // You need to close the resultSet
-    private void close() {
-        try {
-            if (resultSet != null) {
-                resultSet.close();
-            }
-
-            if (statement != null) {
-                statement.close();
-            }
-
-            if (connect != null) {
-                connect.close();
-            }
-        } catch (Exception e) {
-
-        }
-    }
-*/
 }

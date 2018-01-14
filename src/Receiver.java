@@ -12,7 +12,7 @@ public class Receiver {
        try {
       System.out.printf("Listening on udp:%s:%d%n",
                 InetAddress.getLocalHost().getHostAddress(), port);     
-        InetSocketAddress address = new InetSocketAddress("192.168.103.255", 7474);
+        InetSocketAddress address = new InetSocketAddress("192.168.0.10", 7474);
         DatagramSocket serverSocket = new DatagramSocket(7474, InetAddress.getByName("127.0.0.255"));
         
 //        serverSocket.bind(address);
