@@ -33,8 +33,8 @@ public class Hoose {
     
     private static List<String> credentials;
     private static int calmCount = 0;
-    private static int calmPosition = 0;
-    private static Random randomGenerator;
+    private static int calmPosition = -1;
+    private static Random randomGenerator = new Random();
 
     public static void main(String[] args) {
         try {
@@ -113,6 +113,8 @@ public class Hoose {
     }
 
     static PlaylistItem getNextFilm() {
+        System.out.println();
+        System.out.println();
         PlaylistItem nextFilm = null;
         List<PlaylistItem> playlist = getPlaylist();
         if (playlist.size() > 0) {
@@ -130,7 +132,8 @@ public class Hoose {
                 calmCount = 0;
                 //get random film
                 List<PlaylistItem> allFilms = getAllFilms();
-                nextFilm = allFilms.get(randomGenerator.nextInt(allFilms.size()));
+                int randChoice = randomGenerator.nextInt(allFilms.size());
+                nextFilm = allFilms.get(randChoice);
             }
         }
         System.out.println("Next up: " + nextFilm.toString());
@@ -212,7 +215,7 @@ public class Hoose {
             while (resultSet.next()) {
                 allFilms.add(new PlaylistItem(-1, resultSet.getString("post_title"), resultSet.getString("post_name")));
             }
-            writeMetaData(resultSet);
+//            writeMetaData(resultSet);
 
         } catch (Exception e) {
             Logger.getLogger(Hoose.class
@@ -258,7 +261,7 @@ public class Hoose {
             // Result set get the result of the SQL query
             int result = statement.executeUpdate("UPDATE wp_posts SET post_status = \"publish\" WHERE ID=" + id + ";");
 
-            System.out.println(": " + result);
+            System.out.println("Set post_status for "+id+" to publish; result: " + result);
 
         } catch (Exception e) {
             Logger.getLogger(Hoose.class
