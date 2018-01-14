@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -27,8 +28,9 @@ public class Hoose {
     private static final int boxPort = 5010;//and this
     private static final String udpRecieveIP = "127.0.0.1";//"192.168.0.10";//and this
     private static final int udpReceivePort = 7474;
-    
 
+    private static DatagramSocket serverSocket = null;
+    
     private static List<String> credentials;
     private static int calmCount = 0;
     private static int calmPosition = 0;
@@ -42,6 +44,14 @@ public class Hoose {
         }
         //System.out.println(credentials.get(1));
 
+        
+        InetSocketAddress address = new InetSocketAddress(udpRecieveIP, udpReceivePort);
+        try {
+            serverSocket = new DatagramSocket(address);
+        } catch (SocketException ex) {
+            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
 //        getNextFilm();
 //        getPlaylist();
 //        getAllFilms();
@@ -60,7 +70,7 @@ public class Hoose {
         if (nextFilm.id > -1) {
             setPlayed(nextFilm.id);
         }
-        
+
         //send udp word for a while
         int secsToSend = 25;
         int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
@@ -76,37 +86,28 @@ public class Hoose {
                 Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         //listen for interstital starting
         int secsToListen = 13;
-        long startTime = System.currentTimeMillis();
-        long stopTime = startTime + (secsToListen * 1000);
         try {
             System.out.printf("Listening on udp:%s:%d%n",
                     udpRecieveIP, udpReceivePort);
-            InetSocketAddress address = new InetSocketAddress(udpRecieveIP, udpReceivePort);
-            DatagramSocket serverSocket = new DatagramSocket(address);
-
+            
             byte[] receiveData = new byte[16];
 
             DatagramPacket receivePacket = new DatagramPacket(receiveData,
                     receiveData.length);
 
-            while (true) {
-                serverSocket.receive(receivePacket);
-                String sentence = new String(receivePacket.getData(), 0,
-                        receivePacket.getLength());
-                System.out.println("RECEIVED: " + sentence);
-                if (sentence.startsWith("pre_tInter")){
-                    System.out.println("Yay! Confrimation recieved: " + sentence);
-                    break;
-                }
-                if (System.currentTimeMillis() > stopTime){
-                    System.out.println("Bored waiting; proceeding");
-                    break;
-                }
+            serverSocket.setSoTimeout(secsToListen * 1000);
+            serverSocket.receive(receivePacket);
+            String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("RECEIVED: " + sentence);
+            if (sentence.startsWith("pre_tInter")) {
+                System.out.println("Yay! Confrimation recieved: " + sentence);
+            } else {
+                System.out.println("Bored waiting / wronf udp word recieved; er... proceeding");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
@@ -158,10 +159,12 @@ public class Hoose {
             // ResultSet is initially before the first data set
             while (resultSet.next()) {
                 playlist.add(new PlaylistItem(resultSet.getInt("ID"), resultSet.getString("post_title"), resultSet.getString("post_name")));
+
             }
 //            writeMetaData(resultSet);
         } catch (Exception e) {
-            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(Hoose.class
+                    .getName()).log(Level.SEVERE, null, e);
         } finally {
             try {
                 if (resultSet != null) {
@@ -173,9 +176,11 @@ public class Hoose {
 
                 if (connect != null) {
                     connect.close();
+
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Hoose.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
 
         }
@@ -208,8 +213,10 @@ public class Hoose {
                 allFilms.add(new PlaylistItem(-1, resultSet.getString("post_title"), resultSet.getString("post_name")));
             }
             writeMetaData(resultSet);
+
         } catch (Exception e) {
-            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(Hoose.class
+                    .getName()).log(Level.SEVERE, null, e);
         } finally {
             try {
                 if (resultSet != null) {
@@ -221,9 +228,11 @@ public class Hoose {
 
                 if (connect != null) {
                     connect.close();
+
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Hoose.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
 
         }
@@ -252,7 +261,8 @@ public class Hoose {
             System.out.println(": " + result);
 
         } catch (Exception e) {
-            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(Hoose.class
+                    .getName()).log(Level.SEVERE, null, e);
         } finally {
             try {
                 if (resultSet != null) {
@@ -264,9 +274,11 @@ public class Hoose {
 
                 if (connect != null) {
                     connect.close();
+
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Hoose.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
 
         }
