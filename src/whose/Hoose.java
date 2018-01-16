@@ -80,79 +80,85 @@ public class Hoose {
 
         PlaylistItem nextFilm = getNextFilm();
         String udpWord = nextFilm.name;
+        if (udpWord != null) {
+            byte[] sendData = new byte[1024];
+            sendData = udpWord.getBytes();
 
-        byte[] sendData = new byte[1024];
-        sendData = udpWord.getBytes();
+            if (udpWord.startsWith("calm")) {
+                //send udp word for a while
+                int secsToSend = 27;
+                int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
 
-        if (udpWord.startsWith("calm")) {
-            //send udp word for a while
-            int secsToSend = 27;
-            int udpFreq = 100; //every 1/10 secs (same interval as berwick time)
+                int udpSendCount = secsToSend * 1000 / udpFreq;// quarterHourly updates;
 
-            int udpSendCount = secsToSend * 1000 / udpFreq;// quarterHourly updates;
+                System.out.println("sending " + udpWord + " " + udpSendCount + " times");
+                for (int u = 0; u < udpSendCount; u++) {
+                    // System.out.println("Attempting to send data:" + s1);
+                    DatagramPacket sendPacket
+                            = new DatagramPacket(sendData, sendData.length, boxAddress, port);
+                    socket.send(sendPacket);
+                    Thread.sleep(udpFreq);
+                }
+            } else {
+                boolean confirmed = false;
+                while (!confirmed) {
+                    DatagramPacket sendPacket
+                            = new DatagramPacket(sendData, sendData.length, boxAddress, port);
+                    socket.send(sendPacket);
+                    byte[] receiveData = new byte[16];
 
-            System.out.println("sending " + udpWord + " " + udpSendCount + " times");
-            for (int u = 0; u < udpSendCount; u++) {
-                // System.out.println("Attempting to send data:" + s1);
-                DatagramPacket sendPacket
-                        = new DatagramPacket(sendData, sendData.length, boxAddress, port);
-                socket.send(sendPacket);
-                Thread.sleep(udpFreq);
-            }
-        } else {
-            boolean confirmed = false;
-            while (!confirmed) {
-                DatagramPacket sendPacket
-                        = new DatagramPacket(sendData, sendData.length, boxAddress, port);
-                socket.send(sendPacket);
+                    DatagramPacket receivePacket = new DatagramPacket(receiveData,
+                            receiveData.length);
+                    socket.setSoTimeout(100);
+                    try {
+                        socket.receive(receivePacket);
+                    } catch (SocketTimeoutException ste) {
+                    }
+                    String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                    //System.out.println("RECEIVED: " + sentence);
+                    if (sentence.startsWith("ply-T" + udpWord.toUpperCase())) {
+                        confirmed = true;
+                        System.out.println("Yay! Confirmation received: " + sentence);
+                        if (nextFilm.id > -1) {
+                            setStatus(nextFilm.id, "pending");
+                        }
+                    }
+
+                }
+                //listen for interstital starting
+                confirmed = false;
+                int secsToListen = 34;
                 byte[] receiveData = new byte[16];
 
                 DatagramPacket receivePacket = new DatagramPacket(receiveData,
                         receiveData.length);
-                socket.setSoTimeout(100);
-                try {
-                    socket.receive(receivePacket);
-                } catch (SocketTimeoutException ste) {
-                }
-                String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                //System.out.println("RECEIVED: " + sentence);
-                if (sentence.startsWith("ply-T"+udpWord.toUpperCase())) {
-                    confirmed = true;
-                    System.out.println("Yay! Confirmation received: " + sentence);
-                    if (nextFilm.id > -1) {
-                        setStatus(nextFilm.id, "pending");
-                    }
-                }
-
-            }
-            //listen for interstital starting
-            confirmed = false;
-            int secsToListen = 34;
-            byte[] receiveData = new byte[16];
-
-            DatagramPacket receivePacket = new DatagramPacket(receiveData,
-                    receiveData.length);
-            //serverSocket = new DatagramSocket(7474,InetAddress.getByName("192.168.0.10"));
+                //serverSocket = new DatagramSocket(7474,InetAddress.getByName("192.168.0.10"));
 //            serverSocket.setSoTimeout(secsToListen * 1000);
-            long stopTime = System.currentTimeMillis() + (secsToListen * 1000);
-            // && System.currentTimeMillis() < stopTime
-            while (!confirmed && System.currentTimeMillis() < stopTime) {
-                socket.setSoTimeout(100);
-                try {
-                    socket.receive(receivePacket);
-                } catch (SocketTimeoutException ste) {
-                }
-                String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                //System.out.println("RECEIVED: " + sentence);
-                if (sentence.startsWith("ply-TINTER")) {
-                    confirmed = true;
-                    System.out.println("Yay! Confirmation received: " + sentence);
-                    if (nextFilm.id > -1) {
-                        setStatus(nextFilm.id, "publish");
+                long stopTime = System.currentTimeMillis() + (secsToListen * 1000);
+                // && System.currentTimeMillis() < stopTime
+                while (!confirmed && System.currentTimeMillis() < stopTime) {
+                    socket.setSoTimeout(100);
+                    try {
+                        socket.receive(receivePacket);
+                    } catch (SocketTimeoutException ste) {
+                    }
+                    String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                    //System.out.println("RECEIVED: " + sentence);
+                    if (sentence.startsWith("ply-TINTER")) {
+                        confirmed = true;
+                        System.out.println("Yay! Confirmation received: " + sentence);
+                        if (nextFilm.id > -1) {
+                            setStatus(nextFilm.id, "publish");
+                        }
                     }
                 }
+            }
+        } else {
+            if (nextFilm.id > -1) {
+                setStatus(nextFilm.id, "publish");
             }
         }
+
         System.out.println("proceeding");
     }
 
@@ -303,9 +309,9 @@ public class Hoose {
             // Statements allow to issue SQL queries to the database
             statement = connect.createStatement();
             // Result set get the result of the SQL query
-            int result = statement.executeUpdate("UPDATE wp_posts SET post_status = \""+status+"\" WHERE ID=" + id + ";");
+            int result = statement.executeUpdate("UPDATE wp_posts SET post_status = \"" + status + "\" WHERE ID=" + id + ";");
 
-            System.out.println("Set post_status for " + id + " to "+status+"; result: " + result);
+            System.out.println("Set post_status for " + id + " to " + status + "; result: " + result);
 
         } catch (Exception e) {
             Logger.getLogger(Hoose.class
