@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -25,11 +26,10 @@ public class Hoose {
 
     //  >> Here are your controls, John <<
     private static final String boxIP = "192.168.0.104";//you'll need to change this
-    private static final int boxPort = 7474;//and this
-    private static final String udpRecieveIP = "192.168.0.10";//and this
-    private static final int udpReceivePort = 7474;
+    private static final int port = 7474;//and this
 
-    private static DatagramSocket serverSocket = null;
+    private static DatagramSocket socket = null;
+    private static InetAddress boxAddress = null;
 
     private static List<String> credentials;
     private static int calmCount = 0;
@@ -44,19 +44,41 @@ public class Hoose {
         }
         //System.out.println(credentials.get(1));
 
-        //InetSocketAddress address = new InetSocketAddress(udpRecieveIP, udpReceivePort);
+        try {
+            boxAddress = InetAddress.getByName(boxIP);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
+        try {
+            socket = new DatagramSocket(port, InetAddress.getByName(InetAddress.getLocalHost().getHostAddress()));
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SocketException ex) {
+            Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (socket != null) {
+            try {
+                while (true) {
+                    loop();
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                socket.close();
+            }
+        }
 
 //        getNextFilm();
 //        getPlaylist();
 //        getAllFilms();
 //        setPlayed(107);
-//        while (true) {
-            loop();
-//        }
     }
 
-    static void loop() {
+    static void loop() throws IOException, InterruptedException {
 
         PlaylistItem nextFilm = getNextFilm();
         String udpWord = nextFilm.name;
@@ -74,15 +96,15 @@ public class Hoose {
 
         System.out.println("sending " + udpWord + " " + udpSendCount + " times");
         for (int u = 0; u < udpSendCount; u++) {
-            new SendUDPWord(boxIP, boxPort, udpWord);
-            try {
-                Thread.sleep(udpFreq);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            byte[] sendData = new byte[1024];
+            sendData = udpWord.getBytes();
+            // System.out.println("Attempting to send data:" + s1);
+            DatagramPacket sendPacket
+                    = new DatagramPacket(sendData, sendData.length, boxAddress, port);
+            socket.send(sendPacket);
+            Thread.sleep(udpFreq);
         }
 
-        
         //listen for interstital starting
         int secsToListen = 13;
         byte[] receiveData = new byte[16];
@@ -94,12 +116,8 @@ public class Hoose {
         long stopTime = System.currentTimeMillis() + (secsToListen * 1000);
         boolean confirmed = false;
         while (!confirmed && System.currentTimeMillis() < stopTime) {
-            try {
 //                serverSocket.setSoTimeout(10);
-                serverSocket.receive(receivePacket);
-            } catch (IOException ex) {
-                Logger.getLogger(Hoose.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            socket.receive(receivePacket);
             String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
             System.out.println("RECEIVED: " + sentence);
             if (sentence.startsWith("ply-TINTER")) {
@@ -144,7 +162,7 @@ public class Hoose {
         }
     }
 
-    */
+     */
     static PlaylistItem getNextFilm() {
         System.out.println();
         System.out.println();
