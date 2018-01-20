@@ -259,7 +259,7 @@ public class Hoose {
             statement = connect.createStatement();
             // Result set get the result of the SQL query
             resultSet = statement
-                    .executeQuery("SELECT post_name, post_title FROM wp_posts WHERE post_status = \"publish\" AND post_type = \"post_videos\"");
+                    .executeQuery("SELECT wp1.ID, wp2.post_name, wp2.post_title, wp2.post_status FROM wp_posts AS wp1 LEFT JOIN wp_posts wp2 ON wp1.post_title = wp2.ID WHERE wp2.post_status = \"publish\" AND wp1.post_type = \"post_playlists\"  GROUP BY wp2.post_name, wp2.post_title");
             // ResultSet is initially before the first data set
 
             while (resultSet.next()) {
