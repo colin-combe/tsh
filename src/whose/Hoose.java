@@ -263,7 +263,7 @@ public class Hoose {
             // ResultSet is initially before the first data set
 
             while (resultSet.next()) {
-                allFilms.add(new PlaylistItem(-1, resultSet.getString("post_title"), resultSet.getString("post_name")));
+                allFilms.add(new PlaylistItem(resultSet.getInt("ID"), resultSet.getString("post_title"), resultSet.getString("post_name")));
             }
 //            writeMetaData(resultSet);
 
