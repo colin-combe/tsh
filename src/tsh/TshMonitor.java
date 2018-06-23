@@ -43,6 +43,7 @@ public class TshMonitor {
     private static final Float noChangeTolerance = 0.01f;
     
     //private static final Map<String, CSVRecord> trafficMap = new HashMap<String, CSVRecord>();
+    private static boolean loop = true;
 
     public static void main(String argv[]) {
         Calendar cal = Calendar.getInstance();
@@ -51,169 +52,120 @@ public class TshMonitor {
         int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
         System.out.println("> " + dayOfWeek + " - " + hourOfDay);
        
-        //MONDAY
+        // DAY 0
+        //   9AM
+        trafficClips[0] = "TRAFFIC9";       
         //   10AM
-        trafficClips[0] = "TRAFFIC1";       
-        //   11AM
-        trafficClips[1] = "TRAFFIC2";       
+        trafficClips[1] = "TRAFFIC9";       
+        //   11PM
+        trafficClips[2] = "TRAFFIC2";     
         //   12PM
-        trafficClips[2] = "TRAFFIC3";     
-        //   13PM
-        trafficClips[3] = "TRAFFIC4";   
+        trafficClips[3] = "TRAFFIC2";   
+        //    13PM
+        trafficClips[4] = "TRAFFIC2";       
         //    14PM
-        trafficClips[4] = "TRAFFIC5";       
+        trafficClips[5] = "TRAFFIC2";  
         //    15PM
-        trafficClips[5] = "TRAFFIC6";  
+        trafficClips[6] = "TRAFFIC2";       
         //    16PM
-        trafficClips[6] = "TRAFFIC7";       
+        trafficClips[7] = "TRAFFIC2";
         //    17PM
-        trafficClips[7] = "TRAFFIC8";
+        trafficClips[8] = "TRAFFIC1";
         //    18PM
-        trafficClips[8] = "TRAFFIC9";
+        trafficClips[9] = "TRAFFIC9";
         //    19PM
-        trafficClips[9] = "TRAFFIC10";
+        trafficClips[10] = "TRAFFIC19";
         //    20PM
-        trafficClips[10] = "TRAFFIC7";
-        //    21PM
-        trafficClips[11] = "TRAFFIC7";
+        trafficClips[11] = "TRAFFIC20";
         
-        //TUESDAY
+        // DAY 1
+        //   9AM
+        trafficClips[12] = "TRAFFIC9";       
         //   10AM
-        trafficClips[12] = "TRAFFIC7";       
-        //   11AM
-        trafficClips[13] = "TRAFFIC1";       
+        trafficClips[13] = "TRAFFIC2";       
+        //   11PM
+        trafficClips[14] = "TRAFFIC2";     
         //   12PM
-        trafficClips[14] = "TRAFFIC9";     
+        trafficClips[15] = "TRAFFIC2";   
         //   13PM
-        trafficClips[15] = "TRAFFIC9";   
-        //    14PM
-        trafficClips[16] = "TRAFFIC9";       
-        //    15PM
-        trafficClips[17] = "TRAFFIC9";  
-        //    16PM
-        trafficClips[18] = "TRAFFIC1";       
-        //    17PM
+        trafficClips[16] = "TRAFFIC21";       
+        //   14PM
+        trafficClips[17] = "TRAFFIC21";  
+        //   15PM
+        trafficClips[18] = "TRAFFIC21";       
+        //   16PM
         trafficClips[19] = "TRAFFIC7";
-        //    18PM
+        //   17PM
         trafficClips[20] = "TRAFFIC7";
-        //    19PM
+        //   18PM
         trafficClips[21] = "TRAFFIC7";
-        //    20PM
+        //   19PM
         trafficClips[22] = "TRAFFIC7";
-        //    21PM
+        //   20PM
         trafficClips[23] = "TRAFFIC7";
         
-        //WEDNESDAY
+        // DAY 2
+        //   9AM
+        trafficClips[24] = "TRAFFIC1";       
         //   10AM
-        trafficClips[24] = "TRAFFIC7";       
-        //   11AM
-        trafficClips[25] = "TRAFFIC1";       
+        trafficClips[25] = "TRAFFIC21";       
+        //   11PM
+        trafficClips[26] = "TRAFFIC22";     
         //   12PM
-        trafficClips[26] = "TRAFFIC16";     
-        //   13PM
-        trafficClips[27] = "TRAFFIC1";   
+        trafficClips[27] = "TRAFFIC23";   
+        //    13PM
+        trafficClips[28] = "TRAFFIC23";       
         //    14PM
-        trafficClips[28] = "TRAFFIC1";       
+        trafficClips[29] = "TRAFFIC23";  
         //    15PM
-        trafficClips[29] = "TRAFFIC12";  
+        trafficClips[30] = "TRAFFIC23";       
         //    16PM
-        trafficClips[30] = "TRAFFIC12";       
+        trafficClips[31] = "TRAFFIC24";
         //    17PM
-        trafficClips[31] = "TRAFFIC7";
+        trafficClips[32] = "TRAFFIC24";
         //    18PM
-        trafficClips[32] = "TRAFFIC7";
-        //    19PM
         trafficClips[33] = "TRAFFIC7";
-        //    20PM
+        //    19PM
         trafficClips[34] = "TRAFFIC7";
-        //    21PM
+        //    20PM
         trafficClips[35] = "TRAFFIC7";
         
-        //THURSDAY
-        //   10AM
+        // DAY 3
+        //   9AM
         trafficClips[36] = "TRAFFIC7";       
-        //   11AM
-        trafficClips[37] = "TRAFFIC1";       
-        //   12PM
-        trafficClips[38] = "TRAFFIC9";     
-        //   13PM
-        trafficClips[39] = "TRAFFIC2";   
-        //    14PM
-        trafficClips[40] = "TRAFFIC2";       
-        //    15PM
-        trafficClips[41] = "TRAFFIC2";  
-        //    16PM
-        trafficClips[42] = "TRAFFIC2";       
-        //    17PM
-        trafficClips[43] = "TRAFFIC1";
-        //    18PM
-        trafficClips[44] = "TRAFFIC1";
-        //    19PM
-        trafficClips[45] = "TRAFFIC17";
-        //    20PM
-        trafficClips[46] = "TRAFFIC18";
-        //    21PM
-        trafficClips[47] = "TRAFFIC19";
-        
-        //FRIDAY
         //   10AM
-        trafficClips[48] = "TRAFFIC7";       
-        //   11AM
-        trafficClips[49] = "TRAFFIC1";       
+        trafficClips[37] = "TRAFFIC7";       
+        //   11PM
+        trafficClips[38] = "TRAFFIC25";     
         //   12PM
-        trafficClips[50] = "TRAFFIC3";     
-        //   13PM
-        trafficClips[51] = "TRAFFIC3";   
+        trafficClips[39] = "TRAFFIC26";   
+        //    13PM
+        trafficClips[40] = "TRAFFIC27";       
         //    14PM
-        trafficClips[52] = "TRAFFIC4";       
+        trafficClips[41] = "TRAFFIC27";  
         //    15PM
-        trafficClips[53] = "TRAFFIC4";  
+        trafficClips[42] = "TRAFFIC28";       
         //    16PM
-        trafficClips[54] = "TRAFFIC4";       
+        trafficClips[43] = "TRAFFIC28";
         //    17PM
-        trafficClips[55] = "TRAFFIC7";
+        trafficClips[44] = "TRAFFIC7";
         //    18PM
-        trafficClips[56] = "TRAFFIC7";
+        trafficClips[45] = "TRAFFIC7";
         //    19PM
-        trafficClips[57] = "TRAFFIC7";
+        trafficClips[46] = "TRAFFIC7";
         //    20PM
-        trafficClips[58] = "TRAFFIC7";
-        //    21PM
-        trafficClips[59] = "TRAFFIC7";
-        
-        //SATURDAY
-        //   10AM
-        trafficClips[60] = "TRAFFIC7";       
-        //   11AM
-        trafficClips[61] = "TRAFFIC1";       
-        //   12PM
-        trafficClips[62] = "TRAFFIC5";     
-        //   13PM
-        trafficClips[63] = "TRAFFIC5";   
-        //    14PM
-        trafficClips[64] = "TRAFFIC5";       
-        //    15PM
-        trafficClips[65] = "TRAFFIC6";  
-        //    16PM
-        trafficClips[66] = "TRAFFIC6";       
-        //    17PM
-        trafficClips[67] = "TRAFFIC7";
-        //    18PM
-        trafficClips[68] = "TRAFFIC7";
-        //    19PM
-        trafficClips[69] = "TRAFFIC7";
-        //    20PM
-        trafficClips[70] = "TRAFFIC7";
-        //    21PM
-        trafficClips[71] = "TRAFFIC7";
+        trafficClips[47] = "TRAFFIC7";
         
          
-        while (true) {
+        while (loop) {
             try {
                 makeWords();
             } catch (Exception ex) {
                 ex.printStackTrace();
             } 
+            if (argv.length == 0) {
+                loop = false;
+            }
         }
     }
 
@@ -314,13 +266,16 @@ public class TshMonitor {
         Calendar cal = Calendar.getInstance();
         //the default setting - if sunday
         int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-        if (dayOfWeek == Calendar.SUNDAY) {
+        if (dayOfWeek > 1 || dayOfWeek < 5) {
             return defaultTrafficClip;
         }
         else {
             int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
-            if (hourOfDay > 9 && hourOfDay < 22) {
-                int clipIndex = hourOfDay - 10 + ((dayOfWeek - 2) * 12);
+            if (hourOfDay > 8 && hourOfDay < 21) {
+                if (dayOfWeek == 1){
+                    dayOfWeek = 8;
+                }
+                int clipIndex = hourOfDay - 9 + ((dayOfWeek - 5) * 12);
                 return trafficClips[clipIndex];
             } else {
                return defaultTrafficClip; 
