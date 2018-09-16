@@ -189,7 +189,7 @@ public class TshMonitor {
     static Pattern garlsCraig = Pattern.compile(".*?Value\":\"(.*?)\"}");
     
     public static String getRainData() {
-        String inputString = readURL("http://apps.sepa.org.uk/rainfall/api/Hourly/301168");
+        String inputString = readURL("https://apps.sepa.org.uk/rainfall/api/Hourly/301168");
         Matcher m = garlsCraig.matcher(inputString);
         String lastValue = null;
         
@@ -201,7 +201,7 @@ public class TshMonitor {
     }
 
     public static String[] getLevelData() {
-        String dataString = readURL("http://apps.sepa.org.uk/database/riverlevels/504722-SG.csv");
+        String dataString = readURL("https://apps.sepa.org.uk/database/riverlevels/504722-SG.csv");
 
         String lines[] = dataString.split("\\r?\\n");
         int linesLen = lines.length;
