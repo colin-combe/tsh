@@ -37,8 +37,8 @@ public class TshMonitor {
     private static final Float lowChange = 0.2f;
 
     //traffic cut offs - don't really fiddle with these or you traffic flow rate averages wont be what you think
-    private static final int highTruck = 500;
-    private static final int highCar = 1500;
+//    private static final int highTruck = 500;
+//    private static final int highCar = 1500;
 
     private static final Float noChangeTolerance = 0.01f;
     
@@ -52,109 +52,78 @@ public class TshMonitor {
         int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
         System.out.println("> " + dayOfWeek + " - " + hourOfDay);
        
-        // DAY 0
-        //   9AM
-        trafficClips[0] = "TRAFFIC9";       
+        // DAY 0     
         //   10AM
-        trafficClips[1] = "TRAFFIC9";       
+        trafficClips[0] = "TRAFFIC1";       
         //   11PM
-        trafficClips[2] = "TRAFFIC2";     
+        trafficClips[1] = "TRAFFIC2";     
         //   12PM
-        trafficClips[3] = "TRAFFIC2";   
+        trafficClips[2] = "TRAFFIC2";   
         //    13PM
-        trafficClips[4] = "TRAFFIC2";       
+        trafficClips[3] = "TRAFFIC2";       
         //    14PM
-        trafficClips[5] = "TRAFFIC2";  
+        trafficClips[4] = "TRAFFIC2";  
         //    15PM
-        trafficClips[6] = "TRAFFIC2";       
+        trafficClips[5] = "TRAFFIC21";       
         //    16PM
-        trafficClips[7] = "TRAFFIC2";
+        trafficClips[6] = "TRAFFIC3";
         //    17PM
-        trafficClips[8] = "TRAFFIC1";
+        trafficClips[7] = "TRAFFIC2";
         //    18PM
-        trafficClips[9] = "TRAFFIC9";
+        trafficClips[8] = "TRAFFIC1";
         //    19PM
-        trafficClips[10] = "TRAFFIC19";
+        trafficClips[9] = "TRAFFIC7";
         //    20PM
-        trafficClips[11] = "TRAFFIC20";
+        trafficClips[10] = "TRAFFIC7";
         
         // DAY 1
-        //   9AM
-        trafficClips[12] = "TRAFFIC9";       
         //   10AM
-        trafficClips[13] = "TRAFFIC2";       
+        trafficClips[11] = "TRAFFIC27";       
         //   11PM
-        trafficClips[14] = "TRAFFIC2";     
+        trafficClips[12] = "TRAFFIC28";     
         //   12PM
-        trafficClips[15] = "TRAFFIC2";   
+        trafficClips[13] = "TRAFFIC28";   
         //   13PM
-        trafficClips[16] = "TRAFFIC21";       
+        trafficClips[14] = "TRAFFIC28";       
         //   14PM
-        trafficClips[17] = "TRAFFIC21";  
+        trafficClips[15] = "TRAFFIC28";  
         //   15PM
-        trafficClips[18] = "TRAFFIC21";       
+        trafficClips[16] = "TRAFFIC28";       
         //   16PM
-        trafficClips[19] = "TRAFFIC7";
+        trafficClips[17] = "TRAFFIC29";
         //   17PM
-        trafficClips[20] = "TRAFFIC7";
+        trafficClips[18] = "TRAFFIC4";
         //   18PM
-        trafficClips[21] = "TRAFFIC7";
+        trafficClips[19] = "TRAFFIC12";
         //   19PM
-        trafficClips[22] = "TRAFFIC7";
+        trafficClips[20] = "TRAFFIC30";
         //   20PM
-        trafficClips[23] = "TRAFFIC7";
+        trafficClips[21] = "TRAFFIC31";
         
         // DAY 2
-        //   9AM
-        trafficClips[24] = "TRAFFIC1";       
         //   10AM
-        trafficClips[25] = "TRAFFIC21";       
+        trafficClips[22] = "TRAFFIC32";       
         //   11PM
-        trafficClips[26] = "TRAFFIC22";     
+        trafficClips[23] = "TRAFFIC25";     
         //   12PM
-        trafficClips[27] = "TRAFFIC23";   
+        trafficClips[24] = "TRAFFIC25";   
         //    13PM
-        trafficClips[28] = "TRAFFIC23";       
+        trafficClips[25] = "TRAFFIC26";       
         //    14PM
-        trafficClips[29] = "TRAFFIC23";  
+        trafficClips[26] = "TRAFFIC14";  
         //    15PM
-        trafficClips[30] = "TRAFFIC23";       
+        trafficClips[27] = "TRAFFIC5";       
         //    16PM
-        trafficClips[31] = "TRAFFIC24";
+        trafficClips[28] = "TRAFFIC5";
         //    17PM
-        trafficClips[32] = "TRAFFIC24";
+        trafficClips[29] = "TRAFFIC14";
         //    18PM
-        trafficClips[33] = "TRAFFIC7";
+        trafficClips[30] = "TRAFFIC6";
         //    19PM
-        trafficClips[34] = "TRAFFIC7";
+        trafficClips[31] = "TRAFFIC7";
         //    20PM
-        trafficClips[35] = "TRAFFIC7";
+        trafficClips[32] = "TRAFFIC7";
         
-        // DAY 3
-        //   9AM
-        trafficClips[36] = "TRAFFIC7";       
-        //   10AM
-        trafficClips[37] = "TRAFFIC7";       
-        //   11PM
-        trafficClips[38] = "TRAFFIC25";     
-        //   12PM
-        trafficClips[39] = "TRAFFIC26";   
-        //    13PM
-        trafficClips[40] = "TRAFFIC27";       
-        //    14PM
-        trafficClips[41] = "TRAFFIC27";  
-        //    15PM
-        trafficClips[42] = "TRAFFIC28";       
-        //    16PM
-        trafficClips[43] = "TRAFFIC28";
-        //    17PM
-        trafficClips[44] = "TRAFFIC7";
-        //    18PM
-        trafficClips[45] = "TRAFFIC7";
-        //    19PM
-        trafficClips[46] = "TRAFFIC7";
-        //    20PM
-        trafficClips[47] = "TRAFFIC7";
         
          
         while (loop) {
